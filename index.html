@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تستر پیشرفته PZEM-004T v3</title>
+  <title>PZEM-004T v3 Tester</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <meta name="theme-color" content="#0284c7" />
@@ -14,11 +14,16 @@
       display: flex; justify-content: center;
     }
     .container {
-      width: 100%; max-width: 880px; background: #1e293b;
+      width: 100%; max-width: 900px; background: #1e293b;
       border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       border: 1px solid #334155;
     }
-    h1 { margin: 0 0 16px; font-size: 20px; color: #38bdf8; text-align: center; }
+    .header {
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    h1 { margin: 0; font-size: 20px; color: #38bdf8; }
+    .lang-box { display: flex; align-items: center; gap: 8px; }
     .warning {
       display: none; background: #7f1d1d; color: #fecaca; padding: 12px;
       border-radius: 8px; margin-bottom: 15px; font-size: 13px; line-height: 1.7;
@@ -32,7 +37,7 @@
     }
     .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     label { font-size: 13px; color: #94a3b8; }
-    input {
+    input, select {
       background: #1e293b; color: #f8fafc; border: 1px solid #475569;
       border-radius: 6px; padding: 7px 10px; font-size: 13px;
     }
@@ -77,7 +82,7 @@
       font-family: Consolas, Tahoma, sans-serif;
     }
     .device-chip:hover { background: #047857; }
-    .scan-status { font-size: 12px; color: #fbbf24; margin-right: 8px; }
+    .scan-status { font-size: 12px; color: #fbbf24; margin-inline-start: 8px; }
 
     .log-box {
       width: 100%; height: 180px; background: #020617; color: #a7f3d0;
@@ -87,97 +92,212 @@
     }
     .status-dot {
       display: inline-block; width: 10px; height: 10px; border-radius: 50%;
-      background: #ef4444; margin-left: 6px;
+      background: #ef4444; margin-inline-end: 6px;
     }
     .status-dot.connected { background: #22c55e; }
     .hint { font-size: 11px; color: #94a3b8; }
+    .push-end { margin-inline-start: auto; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>⚡ تستر پیشرفته PZEM-004T v3</h1>
+    <div class="header">
+      <h1 data-i18n="appTitle">⚡ تستر پیشرفته PZEM-004T v3</h1>
+      <div class="lang-box">
+        <label for="langSelect" data-i18n="langLabel">زبان / Language:</label>
+        <select id="langSelect">
+          <option value="fa">فارسی (FA)</option>
+          <option value="en">English (EN)</option>
+        </select>
+      </div>
+    </div>
 
     <div id="browserWarning" class="warning"></div>
 
     <!-- اتصال و آدرس دستی -->
     <div class="panel">
       <div class="row">
-        <span><span id="statusDot" class="status-dot"></span><span id="statusText">قطع</span></span>
+        <span><span id="statusDot" class="status-dot"></span><span id="statusText"></span></span>
 
-        <label for="slaveAddr">آدرس Slave (دستی):</label>
+        <label for="slaveAddr" data-i18n="slaveAddrLabel">آدرس Slave (دستی):</label>
         <input id="slaveAddr" type="number" value="1" min="1" max="248" />
-        <span class="hint">(1 تا 247، یا 248 آدرس عمومی)</span>
+        <span class="hint" data-i18n="slaveAddrHint">(1 تا 247، یا 248 آدرس عمومی)</span>
 
-        <button id="btnConnect" class="btn-primary" style="margin-right: auto;">انتخاب پورت COM و اتصال</button>
-        <button id="btnDisconnect" class="btn-danger" disabled>قطع اتصال</button>
+        <button id="btnConnect" class="btn-primary push-end" data-i18n="btnConnect">انتخاب پورت COM و اتصال</button>
+        <button id="btnDisconnect" class="btn-danger" disabled data-i18n="btnDisconnect">قطع اتصال</button>
       </div>
     </div>
 
     <!-- جستجوی دستگاه و ست کردن آدرس -->
     <div class="panel">
-      <div class="panel-title">🔍 جستجوی دستگاه‌های متصل و تغییر آدرس</div>
+      <div class="panel-title" data-i18n="scanSectionTitle">🔍 جستجوی دستگاه‌های متصل و تغییر آدرس</div>
       <div class="row" style="margin-bottom: 12px;">
-        <label for="scanStart">جستجو از آدرس:</label>
+        <label for="scanStart" data-i18n="scanFromLabel">جستجو از آدرس:</label>
         <input id="scanStart" type="number" value="1" min="1" max="247" />
-        <label for="scanEnd">تا:</label>
+        <label for="scanEnd" data-i18n="scanToLabel">تا:</label>
         <input id="scanEnd" type="number" value="20" min="1" max="247" />
 
-        <button id="btnScan" class="btn-warning" disabled>جستجوی دستگاه‌ها</button>
-        <button id="btnStopScan" class="btn-danger" disabled>توقف جستجو</button>
+        <button id="btnScan" class="btn-warning" disabled data-i18n="btnScan">جستجوی دستگاه‌ها</button>
+        <button id="btnStopScan" class="btn-danger" disabled data-i18n="btnStopScan">توقف جستجو</button>
         <span id="scanStatus" class="scan-status"></span>
       </div>
 
       <div id="foundDevices" class="found-devices">
-        <span class="hint">دستگاه‌های پیدا شده اینجا نمایش داده می‌شوند (برای انتخاب کلیک کنید).</span>
+        <span class="hint" data-i18n="foundDevicesHint">دستگاه‌های پیدا شده اینجا نمایش داده می‌شوند (برای انتخاب کلیک کنید).</span>
       </div>
 
       <hr style="border: 0; border-top: 1px solid #334155; margin: 12px 0;" />
 
       <div class="row">
-        <label for="newAddr">تغییر آدرس ماژول فعلی به آدرس جدید:</label>
+        <label for="newAddr" data-i18n="newAddrLabel">تغییر آدرس ماژول فعلی به آدرس جدید:</label>
         <input id="newAddr" type="number" value="2" min="1" max="247" />
-        <button id="btnSetAddr" class="btn-primary" disabled>ثبت آدرس جدید (Set Address)</button>
-        <span class="hint">(روی آدرس فعلی وارد شده در بالا اعمال می‌شود)</span>
+        <button id="btnSetAddr" class="btn-primary" disabled data-i18n="btnSetAddr">ثبت آدرس جدید (Set Address)</button>
+        <span class="hint" data-i18n="newAddrHint">(روی آدرس فعلی وارد شده در بالا اعمال می‌شود)</span>
       </div>
     </div>
 
     <!-- کنترل خواندن و ریست -->
     <div class="panel">
       <div class="row">
-        <button id="btnReadOnce" class="btn-success" disabled>خواندن تکی</button>
-        <button id="btnPoll" class="btn-primary" disabled>شروع خواندن خودکار</button>
+        <button id="btnReadOnce" class="btn-success" disabled data-i18n="btnReadOnce">خواندن تکی</button>
+        <button id="btnPoll" class="btn-primary" disabled></button>
 
-        <label for="intervalInput">بازه (ms):</label>
+        <label for="intervalInput" data-i18n="intervalLabel">بازه (ms):</label>
         <input id="intervalInput" type="number" value="1000" min="300" step="100" />
 
-        <button id="btnReset" class="btn-danger" disabled style="margin-right: auto;">ریست انرژی (Reset)</button>
+        <button id="btnReset" class="btn-danger push-end" disabled data-i18n="btnReset">ریست انرژی (Reset)</button>
       </div>
     </div>
 
     <!-- نمایشگر مقادیر -->
     <div class="panel">
       <div class="grid">
-        <div class="card"><div class="title">ولتاژ (Voltage)</div><div class="val" id="valVoltage">--- V</div></div>
-        <div class="card"><div class="title">جریان (Current)</div><div class="val" id="valCurrent">--- A</div></div>
-        <div class="card"><div class="title">توان (Power)</div><div class="val" id="valPower">--- W</div></div>
-        <div class="card"><div class="title">انرژی (Energy)</div><div class="val" id="valEnergy">--- kWh</div></div>
-        <div class="card"><div class="title">فرکانس (Frequency)</div><div class="val" id="valFreq">--- Hz</div></div>
-        <div class="card"><div class="title">ضریب توان (PF)</div><div class="val" id="valPF">---</div></div>
-        <div class="card" id="alarmCard"><div class="title">وضعیت آلارم</div><div class="val" id="valAlarm">---</div></div>
+        <div class="card"><div class="title" data-i18n="cardVoltage">ولتاژ (Voltage)</div><div class="val" id="valVoltage">--- V</div></div>
+        <div class="card"><div class="title" data-i18n="cardCurrent">جریان (Current)</div><div class="val" id="valCurrent">--- A</div></div>
+        <div class="card"><div class="title" data-i18n="cardPower">توان (Power)</div><div class="val" id="valPower">--- W</div></div>
+        <div class="card"><div class="title" data-i18n="cardEnergy">انرژی (Energy)</div><div class="val" id="valEnergy">--- kWh</div></div>
+        <div class="card"><div class="title" data-i18n="cardFreq">فرکانس (Frequency)</div><div class="val" id="valFreq">--- Hz</div></div>
+        <div class="card"><div class="title" data-i18n="cardPF">ضریب توان (PF)</div><div class="val" id="valPF">---</div></div>
+        <div class="card" id="alarmCard"><div class="title" data-i18n="cardAlarm">وضعیت آلارم</div><div class="val" id="valAlarm">---</div></div>
       </div>
     </div>
 
     <!-- لاگ ارتباطی -->
     <div class="panel">
       <div class="row" style="justify-content: space-between; margin-bottom: 8px;">
-        <label>لاگ بسته‌های خام (Raw Hex TX / RX)</label>
-        <button id="btnClearLog" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">پاک کردن لاگ</button>
+        <label data-i18n="logTitle">لاگ بسته‌های خام (Raw Hex TX / RX)</label>
+        <button id="btnClearLog" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;" data-i18n="btnClearLog">پاک کردن لاگ</button>
       </div>
       <div id="logBox" class="log-box"></div>
     </div>
   </div>
 
   <script>
+    const i18n = {
+      fa: {
+        pageTitle: "تستر پیشرفته PZEM-004T v3",
+        appTitle: "⚡ تستر پیشرفته PZEM-004T v3",
+        langLabel: "زبان / Language:",
+        statusDisconnected: "قطع",
+        statusConnected: "متصل (9600 8N1)",
+        slaveAddrLabel: "آدرس Slave (دستی):",
+        slaveAddrHint: "(1 تا 247، یا 248 آدرس عمومی)",
+        btnConnect: "انتخاب پورت COM و اتصال",
+        btnDisconnect: "قطع اتصال",
+        scanSectionTitle: "🔍 جستجوی دستگاه‌های متصل و تغییر آدرس",
+        scanFromLabel: "جستجو از آدرس:",
+        scanToLabel: "تا:",
+        btnScan: "جستجوی دستگاه‌ها",
+        btnStopScan: "توقف جستجو",
+        foundDevicesHint: "دستگاه‌های پیدا شده اینجا نمایش داده می‌شوند (برای انتخاب کلیک کنید).",
+        noDevicesFound: "هیچ دستگاهی در این بازه پاسخ نداد.",
+        newAddrLabel: "تغییر آدرس ماژول فعلی به آدرس جدید:",
+        btnSetAddr: "ثبت آدرس جدید (Set Address)",
+        newAddrHint: "(روی آدرس فعلی وارد شده در بالا اعمال می‌شود)",
+        btnReadOnce: "خواندن تکی",
+        btnPollStart: "شروع خواندن خودکار",
+        btnPollStop: "توقف خواندن خودکار",
+        intervalLabel: "بازه (ms):",
+        btnReset: "ریست انرژی (Reset)",
+        cardVoltage: "ولتاژ (Voltage)",
+        cardCurrent: "جریان (Current)",
+        cardPower: "توان (Power)",
+        cardEnergy: "انرژی (Energy)",
+        cardFreq: "فرکانس (Frequency)",
+        cardPF: "ضریب توان (PF)",
+        cardAlarm: "وضعیت آلارم",
+        alarmActive: "آلارم! (ALARM)",
+        alarmNormal: "عادی (Normal)",
+        logTitle: "لاگ بسته‌های خام (Raw Hex TX / RX)",
+        btnClearLog: "پاک کردن لاگ",
+        warnInsecure: "⚠️ <b>نکته مهم:</b> برای دسترسی به پورت COM، صفحه باید روی <code>https://</code> (مثل GitHub Pages) یا <code>http://localhost</code> باز شود.",
+        warnUnsupported: "⚠️ مرورگر شما از <b>Web Serial API</b> پشتیبانی نمی‌کند. لطفاً از <b>Microsoft Edge</b> یا <b>Google Chrome</b> در ویندوز استفاده کنید.",
+        alertSlaveRange: "آدرس Slave باید عددی بین 1 تا 248 باشد.",
+        alertScanRange: "بازه جستجو نامعتبر است (باید بین 1 تا 247 باشد).",
+        alertNewAddrRange: "آدرس جدید باید بین 1 تا 247 باشد.",
+        confirmSetAddr: (cur, nxt) => `آیا آدرس دستگاه متصل از ${cur} به ${nxt} تغییر کند؟`,
+        confirmReset: (addr) => `آیا شمارنده انرژی ماژول با آدرس ${addr} صفر شود؟`,
+        scanningProgress: (addr, end) => `در حال بررسی آدرس ${addr} از ${end}...`,
+        scanFinished: (count) => `جستجو پایان یافت (${count} دستگاه پیدا شد).`,
+        scanStopped: "جستجو متوقف شد.",
+        deviceChip: (addr, v) => `آدرس ${addr} (${v}V)`,
+        deviceChipTitle: "برای انتخاب این آدرس کلیک کنید"
+      },
+      en: {
+        pageTitle: "PZEM-004T v3 Advanced Tester",
+        appTitle: "⚡ PZEM-004T v3 Advanced Tester",
+        langLabel: "Language / زبان:",
+        statusDisconnected: "Disconnected",
+        statusConnected: "Connected (9600 8N1)",
+        slaveAddrLabel: "Slave Address (Manual):",
+        slaveAddrHint: "(1 to 247, or 248 for general address)",
+        btnConnect: "Select COM Port & Connect",
+        btnDisconnect: "Disconnect",
+        scanSectionTitle: "🔍 Scan Connected Devices & Set Address",
+        scanFromLabel: "Scan from:",
+        scanToLabel: "to:",
+        btnScan: "Scan Devices",
+        btnStopScan: "Stop Scan",
+        foundDevicesHint: "Discovered devices will appear here (click to select).",
+        noDevicesFound: "No devices responded in this range.",
+        newAddrLabel: "Change current module address to:",
+        btnSetAddr: "Set New Address",
+        newAddrHint: "(Applied to the current Slave address entered above)",
+        btnReadOnce: "Read Once",
+        btnPollStart: "Start Auto Read",
+        btnPollStop: "Stop Auto Read",
+        intervalLabel: "Interval (ms):",
+        btnReset: "Reset Energy",
+        cardVoltage: "Voltage",
+        cardCurrent: "Current",
+        cardPower: "Power",
+        cardEnergy: "Energy",
+        cardFreq: "Frequency",
+        cardPF: "Power Factor (PF)",
+        cardAlarm: "Alarm Status",
+        alarmActive: "ALARM!",
+        alarmNormal: "Normal",
+        logTitle: "Communication Log (Raw Hex TX / RX)",
+        btnClearLog: "Clear Log",
+        warnInsecure: "⚠️ <b>Note:</b> Web Serial requires <code>https://</code> (like GitHub Pages) or <code>http://localhost</code>.",
+        warnUnsupported: "⚠️ Your browser does not support <b>Web Serial API</b>. Please use <b>Microsoft Edge</b> or <b>Google Chrome</b> on desktop.",
+        alertSlaveRange: "Slave address must be a number between 1 and 248.",
+        alertScanRange: "Invalid scan range (must be between 1 and 247).",
+        alertNewAddrRange: "New address must be between 1 and 247.",
+        confirmSetAddr: (cur, nxt) => `Change module address from ${cur} to ${nxt}?`,
+        confirmReset: (addr) => `Reset energy counter for module address ${addr}?`,
+        scanningProgress: (addr, end) => `Scanning address ${addr} of ${end}...`,
+        scanFinished: (count) => `Scan complete (${count} device(s) found).`,
+        scanStopped: "Scan stopped.",
+        deviceChip: (addr, v) => `Addr ${addr} (${v}V)`,
+        deviceChipTitle: "Click to select this address"
+      }
+    };
+
+    let currentLang = localStorage.getItem("pzem_lang") || "fa";
+    if (!i18n[currentLang]) currentLang = "fa";
+
+    const langSelect = document.getElementById("langSelect");
     const warningEl = document.getElementById("browserWarning");
     const btnConnect = document.getElementById("btnConnect");
     const btnDisconnect = document.getElementById("btnDisconnect");
@@ -209,18 +329,46 @@
     let pollTimer = null;
     let rxBuffer = [];
     let rxWaiter = null;
+    let lastAlarmState = null;
+    let foundDevicesList = [];
 
-    if (!("serial" in navigator)) {
-      warningEl.style.display = "block";
-      if (!window.isSecureContext) {
-        warningEl.innerHTML =
-          "⚠️ <b>نکته مهم:</b> برای دسترسی به پورت COM، صفحه باید روی <code>https://</code> (مثل GitHub Pages) یا <code>http://localhost</code> باز شود.";
-      } else {
-        warningEl.innerHTML =
-          "⚠️ مرورگر شما از <b>Web Serial API</b> پشتیبانی نمی‌کند. لطفاً از <b>Microsoft Edge</b> یا <b>Google Chrome</b> در ویندوز استفاده کنید.";
-      }
-      btnConnect.disabled = true;
+    function t(key, ...args) {
+      const val = i18n[currentLang][key];
+      return typeof val === "function" ? val(...args) : val;
     }
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem("pzem_lang", lang);
+      langSelect.value = lang;
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
+      document.title = t("pageTitle");
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (i18n[lang][key]) el.textContent = t(key);
+      });
+
+      statusText.textContent = isConnected ? t("statusConnected") : t("statusDisconnected");
+      btnPoll.textContent = pollTimer ? t("btnPollStop") : t("btnPollStart");
+
+      if (lastAlarmState !== null) {
+        document.getElementById("valAlarm").textContent = lastAlarmState ? t("alarmActive") : t("alarmNormal");
+      }
+
+      if (foundDevicesList.length > 0) {
+        renderFoundDevices();
+      }
+
+      if (!("serial" in navigator)) {
+        warningEl.style.display = "block";
+        warningEl.innerHTML = window.isSecureContext ? t("warnUnsupported") : t("warnInsecure");
+        btnConnect.disabled = true;
+      }
+    }
+
+    langSelect.addEventListener("change", (e) => applyLanguage(e.target.value));
 
     function log(msg) {
       const now = new Date();
@@ -251,7 +399,7 @@
     function getSlaveAddress() {
       const addr = parseInt(slaveAddrEl.value, 10);
       if (isNaN(addr) || addr < 1 || addr > 248) {
-        alert("آدرس Slave باید عددی بین 1 تا 248 باشد.");
+        alert(t("alertSlaveRange"));
         return null;
       }
       return addr;
@@ -304,7 +452,7 @@
 
         const resp = await waitForBytes(expectedLen, timeoutMs);
         if (resp.length === 0) {
-          if (!silentTimeout) log("RX: Timeout (پاسخی دریافت نشد)");
+          if (!silentTimeout) log("RX: Timeout (No response)");
         } else {
           if (!silentTimeout) log("RX: " + toHex(resp));
         }
@@ -331,7 +479,7 @@
       const energyKwh = energyWh / 1000.0;
       const freq = regs[7] * 0.1;
       const pf = regs[8] * 0.01;
-      const isAlarm = regs[9] === 0xFFFF;
+      lastAlarmState = regs[9] === 0xFFFF;
 
       document.getElementById("valVoltage").textContent = `${voltage.toFixed(1)} V`;
       document.getElementById("valCurrent").textContent = `${current.toFixed(3)} A`;
@@ -339,8 +487,8 @@
       document.getElementById("valEnergy").textContent = `${energyKwh.toFixed(3)} kWh (${energyWh} Wh)`;
       document.getElementById("valFreq").textContent = `${freq.toFixed(1)} Hz`;
       document.getElementById("valPF").textContent = `${pf.toFixed(2)}`;
-      document.getElementById("valAlarm").textContent = isAlarm ? "ALARM!" : "Normal";
-      document.getElementById("alarmCard").classList.toggle("alarm-on", isAlarm);
+      document.getElementById("valAlarm").textContent = lastAlarmState ? t("alarmActive") : t("alarmNormal");
+      document.getElementById("alarmCard").classList.toggle("alarm-on", lastAlarmState);
     }
 
     function validateReadResponse(resp) {
@@ -361,10 +509,25 @@
       if (!resp || resp.length === 0) return;
 
       if (!validateReadResponse(resp)) {
-        log("Error: پاسخ یا CRC نامعتبر است.");
+        log("Error: Invalid Modbus response or CRC.");
         return;
       }
       parseAndDisplayMeasurement(resp);
+    }
+
+    function renderFoundDevices() {
+      foundDevicesEl.innerHTML = "";
+      foundDevicesList.forEach(({ addr, voltage }) => {
+        const chip = document.createElement("button");
+        chip.className = "device-chip";
+        chip.textContent = t("deviceChip", addr, voltage);
+        chip.title = t("deviceChipTitle");
+        chip.onclick = () => {
+          slaveAddrEl.value = addr;
+          readPZEM();
+        };
+        foundDevicesEl.appendChild(chip);
+      });
     }
 
     async function scanDevices() {
@@ -372,48 +535,39 @@
       const start = parseInt(scanStartEl.value, 10);
       const end = parseInt(scanEndEl.value, 10);
       if (isNaN(start) || isNaN(end) || start < 1 || end > 247 || start > end) {
-        alert("بازه جستجو نامعتبر است (باید بین 1 تا 247 باشد).");
+        alert(t("alertScanRange"));
         return;
       }
 
       isScanning = true;
       updateActionButtons();
+      foundDevicesList = [];
       foundDevicesEl.innerHTML = "";
-      let foundCount = 0;
-      log(`شروع جستجو از آدرس ${start} تا ${end}...`);
+      log(`Scan started (${start} -> ${end})...`);
 
       for (let addr = start; addr <= end; addr++) {
         if (!isScanning || !isConnected) break;
-        scanStatusEl.textContent = `در حال بررسی آدرس ${addr} از ${end}...`;
+        scanStatusEl.textContent = t("scanningProgress", addr, end);
 
         const payload = [addr, 0x04, 0x00, 0x00, 0x00, 0x0A];
         const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
 
         const resp = await sendAndReceive(frame, 25, 160, true);
         if (validateReadResponse(resp)) {
-          foundCount++;
           const view = new DataView(resp.buffer, resp.byteOffset, resp.byteLength);
           const voltage = (view.getUint16(3, false) * 0.1).toFixed(1);
-          log(`✅ دستگاه پیدا شد -> آدرس: ${addr} | ولتاژ: ${voltage}V`);
-
-          const chip = document.createElement("button");
-          chip.className = "device-chip";
-          chip.textContent = `آدرس ${addr} (${voltage}V)`;
-          chip.title = "برای انتخاب این آدرس کلیک کنید";
-          chip.onclick = () => {
-            slaveAddrEl.value = addr;
-            readPZEM();
-          };
-          foundDevicesEl.appendChild(chip);
+          log(`✅ Found Device -> Address: ${addr} | Voltage: ${voltage}V`);
+          foundDevicesList.push({ addr, voltage });
+          renderFoundDevices();
         }
         await sleep(25);
       }
 
-      if (foundCount === 0) {
-        foundDevicesEl.innerHTML = `<span class="hint">هیچ دستگاهی در این بازه پاسخ نداد.</span>`;
+      if (foundDevicesList.length === 0) {
+        foundDevicesEl.innerHTML = `<span class="hint">${t("noDevicesFound")}</span>`;
       }
-      scanStatusEl.textContent = isScanning ? `جستجو پایان یافت (${foundCount} دستگاه پیدا شد).` : "جستجو متوقف شد.";
-      log(`پایان جستجو. تعداد دستگاه‌های یافت‌شده: ${foundCount}`);
+      scanStatusEl.textContent = isScanning ? t("scanFinished", foundDevicesList.length) : t("scanStopped");
+      log(`Scan finished. Found: ${foundDevicesList.length}`);
 
       isScanning = false;
       updateActionButtons();
@@ -426,55 +580,55 @@
 
       const newAddr = parseInt(newAddrEl.value, 10);
       if (isNaN(newAddr) || newAddr < 1 || newAddr > 247) {
-        alert("آدرس جدید باید بین 1 تا 247 باشد.");
+        alert(t("alertNewAddrRange"));
         return;
       }
-      if (!confirm(`آیا آدرس دستگاه متصل از ${currentAddr} به ${newAddr} تغییر کند؟`)) return;
+      if (!confirm(t("confirmSetAddr", currentAddr, newAddr))) return;
 
       const payload = [currentAddr, 0x06, 0x00, 0x02, 0x00, newAddr];
       const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
 
       const resp = await sendAndReceive(frame, 8, 700);
       if (!resp || resp.length !== 8) {
-        log("❌ تغییر آدرس ناموفق بود (پاسخ ناقص یا عدم دریافت پاسخ).");
+        log("❌ Set Address failed (no/incomplete response).");
         return;
       }
 
       const crcExpected = calcCRC16(resp.slice(0, 6));
       if (resp[6] !== crcExpected[0] || resp[7] !== crcExpected[1]) {
-        log("❌ خطای CRC در پاسخ تغییر آدرس.");
+        log("❌ Set Address CRC error.");
         return;
       }
 
       if (resp[1] === 0x06 && resp[2] === 0x00 && resp[3] === 0x02 && resp[5] === newAddr) {
         slaveAddrEl.value = newAddr;
-        log(`✅ آدرس ماژول با موفقیت به ${newAddr} تغییر یافت.`);
+        log(`✅ Address changed successfully to ${newAddr}.`);
         await sleep(100);
         await readPZEM();
       } else {
-        log("❌ ماژول تغییر آدرس را تایید نکرد.");
+        log("❌ Module rejected address change.");
       }
     }
 
     async function resetEnergy() {
       const addr = getSlaveAddress();
       if (addr === null) return;
-      if (!confirm(`آیا شمارنده انرژی ماژول با آدرس ${addr} صفر شود؟`)) return;
+      if (!confirm(t("confirmReset", addr))) return;
 
       const payload = [addr, 0x42];
       const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
 
       const resp = await sendAndReceive(frame, 4, 650);
       if (!resp || resp.length !== 4) {
-        log("Reset Energy Failed.");
+        log("Reset Energy failed.");
         return;
       }
       const crcExpected = calcCRC16(resp.slice(0, 2));
       if (resp[1] === 0x42 && resp[2] === crcExpected[0] && resp[3] === crcExpected[1]) {
-        log("✅ انرژی با موفقیت صفر شد.");
+        log("✅ Energy counter reset to 0.");
         await readPZEM();
       } else {
-        log("❌ پاسخ ریست نامعتبر بود.");
+        log("❌ Invalid Reset response.");
       }
     }
 
@@ -483,13 +637,13 @@
         clearInterval(pollTimer);
         pollTimer = null;
       }
-      btnPoll.textContent = "شروع خواندن خودکار";
+      btnPoll.textContent = t("btnPollStart");
       updateActionButtons();
     }
 
     function updateActionButtons() {
       const canAct = isConnected && !isScanning;
-      btnConnect.disabled = isConnected;
+      btnConnect.disabled = isConnected || !("serial" in navigator);
       btnDisconnect.disabled = !isConnected;
       btnReadOnce.disabled = !canAct || !!pollTimer;
       btnPoll.disabled = !canAct;
@@ -505,7 +659,7 @@
         await port.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: "none" });
         isConnected = true;
         statusDot.classList.add("connected");
-        statusText.textContent = "متصل (9600 8N1)";
+        statusText.textContent = t("statusConnected");
         updateActionButtons();
         reader = port.readable.getReader();
         readLoop();
@@ -533,7 +687,7 @@
         log("Disconnect Error: " + err.message);
       }
       statusDot.classList.remove("connected");
-      statusText.textContent = "قطع";
+      statusText.textContent = t("statusDisconnected");
       updateActionButtons();
       log("Disconnected.");
     });
@@ -550,14 +704,15 @@
         stopPolling();
       } else {
         const ms = Math.max(300, parseInt(intervalEl.value, 10) || 1000);
-        btnPoll.textContent = "توقف خواندن خودکار";
+        btnPoll.textContent = t("btnPollStop");
         readPZEM();
         pollTimer = setInterval(readPZEM, ms);
         updateActionButtons();
       }
     });
 
-    // ثبت Service Worker برای اجرای آفلاین
+    applyLanguage(currentLang);
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").catch(() => {});
