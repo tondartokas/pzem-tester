@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تستر پیشرفته PZEM-004T v3</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#0284c7" />
+  <style>
+    * { box-sizing: border-box; font-family: Tahoma, "Segoe UI", sans-serif; }
+    body {
+      margin: 0; padding: 20px; background: #0f172a; color: #e2e8f0;
+      display: flex; justify-content: center;
+    }
+    .container {
+      width: 100%; max-width: 880px; background: #1e293b;
+      border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1px solid #334155;
+    }
+    h1 { margin: 0 0 16px; font-size: 20px; color: #38bdf8; text-align: center; }
+    .warning {
+      display: none; background: #7f1d1d; color: #fecaca; padding: 12px;
+      border-radius: 8px; margin-bottom: 15px; font-size: 13px; line-height: 1.7;
+    }
+    .panel {
+      background: #0f172a; border: 1px solid #334155; border-radius: 10px;
+      padding: 14px; margin-bottom: 14px;
+    }
+    .panel-title {
+      font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 10px;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    label { font-size: 13px; color: #94a3b8; }
+    input {
+      background: #1e293b; color: #f8fafc; border: 1px solid #475569;
+      border-radius: 6px; padding: 7px 10px; font-size: 13px;
+    }
+    input[type="number"] { width: 85px; text-align: center; font-family: Consolas, monospace; }
+    button {
+      border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px;
+      cursor: pointer; font-weight: bold; transition: 0.2s;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: #0284c7; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #0369a1; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #15803d; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-warning:hover:not(:disabled) { background: #b45309; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #b91c1c; }
+    .btn-secondary { background: #475569; color: #fff; }
+    .btn-secondary:hover:not(:disabled) { background: #334155; }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 12px; text-align: center;
+    }
+    .card .title { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+    .card .val {
+      font-size: 20px; font-weight: bold; color: #38bdf8;
+      font-family: Consolas, monospace; direction: ltr;
+    }
+    .card.alarm-on .val { color: #f87171; }
+
+    .found-devices {
+      margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .device-chip {
+      background: #065f46; color: #ecfdf5; border: 1px solid #10b981;
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+      font-family: Consolas, Tahoma, sans-serif;
+    }
+    .device-chip:hover { background: #047857; }
+    .scan-status { font-size: 12px; color: #fbbf24; margin-right: 8px; }
+
+    .log-box {
+      width: 100%; height: 180px; background: #020617; color: #a7f3d0;
+      border: 1px solid #334155; border-radius: 8px; padding: 10px;
+      font-family: Consolas, monospace; font-size: 12px; overflow-y: auto;
+      direction: ltr; text-align: left; white-space: pre-wrap;
+    }
+    .status-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      background: #ef4444; margin-left: 6px;
+    }
+    .status-dot.connected { background: #22c55e; }
+    .hint { font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ تستر پیشرفته PZEM-004T v3</h1>
+
+    <div id="browserWarning" class="warning"></div>
+
+    <!-- اتصال و آدرس دستی -->
+    <div class="panel">
+      <div class="row">
+        <span><span id="statusDot" class="status-dot"></span><span id="statusText">قطع</span></span>
+
+        <label for="slaveAddr">آدرس Slave (دستی):</label>
+        <input id="slaveAddr" type="number" value="1" min="1" max="248" />
+        <span class="hint">(1 تا 247، یا 248 آدرس عمومی)</span>
+
+        <button id="btnConnect" class="btn-primary" style="margin-right: auto;">انتخاب پورت COM و اتصال</button>
+        <button id="btnDisconnect" class="btn-danger" disabled>قطع اتصال</button>
+      </div>
+    </div>
+
+    <!-- جستجوی دستگاه و ست کردن آدرس -->
+    <div class="panel">
+      <div class="panel-title">🔍 جستجوی دستگاه‌های متصل و تغییر آدرس</div>
+      <div class="row" style="margin-bottom: 12px;">
+        <label for="scanStart">جستجو از آدرس:</label>
+        <input id="scanStart" type="number" value="1" min="1" max="247" />
+        <label for="scanEnd">تا:</label>
+        <input id="scanEnd" type="number" value="20" min="1" max="247" />
+
+        <button id="btnScan" class="btn-warning" disabled>جستجوی دستگاه‌ها</button>
+        <button id="btnStopScan" class="btn-danger" disabled>توقف جستجو</button>
+        <span id="scanStatus" class="scan-status"></span>
+      </div>
+
+      <div id="foundDevices" class="found-devices">
+        <span class="hint">دستگاه‌های پیدا شده اینجا نمایش داده می‌شوند (برای انتخاب کلیک کنید).</span>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #334155; margin: 12px 0;" />
+
+      <div class="row">
+        <label for="newAddr">تغییر آدرس ماژول فعلی به آدرس جدید:</label>
+        <input id="newAddr" type="number" value="2" min="1" max="247" />
+        <button id="btnSetAddr" class="btn-primary" disabled>ثبت آدرس جدید (Set Address)</button>
+        <span class="hint">(روی آدرس فعلی وارد شده در بالا اعمال می‌شود)</span>
+      </div>
+    </div>
+
+    <!-- کنترل خواندن و ریست -->
+    <div class="panel">
+      <div class="row">
+        <button id="btnReadOnce" class="btn-success" disabled>خواندن تکی</button>
+        <button id="btnPoll" class="btn-primary" disabled>شروع خواندن خودکار</button>
+
+        <label for="intervalInput">بازه (ms):</label>
+        <input id="intervalInput" type="number" value="1000" min="300" step="100" />
+
+        <button id="btnReset" class="btn-danger" disabled style="margin-right: auto;">ریست انرژی (Reset)</button>
+      </div>
+    </div>
+
+    <!-- نمایشگر مقادیر -->
+    <div class="panel">
+      <div class="grid">
+        <div class="card"><div class="title">ولتاژ (Voltage)</div><div class="val" id="valVoltage">--- V</div></div>
+        <div class="card"><div class="title">جریان (Current)</div><div class="val" id="valCurrent">--- A</div></div>
+        <div class="card"><div class="title">توان (Power)</div><div class="val" id="valPower">--- W</div></div>
+        <div class="card"><div class="title">انرژی (Energy)</div><div class="val" id="valEnergy">--- kWh</div></div>
+        <div class="card"><div class="title">فرکانس (Frequency)</div><div class="val" id="valFreq">--- Hz</div></div>
+        <div class="card"><div class="title">ضریب توان (PF)</div><div class="val" id="valPF">---</div></div>
+        <div class="card" id="alarmCard"><div class="title">وضعیت آلارم</div><div class="val" id="valAlarm">---</div></div>
+      </div>
+    </div>
+
+    <!-- لاگ ارتباطی -->
+    <div class="panel">
+      <div class="row" style="justify-content: space-between; margin-bottom: 8px;">
+        <label>لاگ بسته‌های خام (Raw Hex TX / RX)</label>
+        <button id="btnClearLog" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">پاک کردن لاگ</button>
+      </div>
+      <div id="logBox" class="log-box"></div>
+    </div>
+  </div>
+
+  <script>
+    const warningEl = document.getElementById("browserWarning");
+    const btnConnect = document.getElementById("btnConnect");
+    const btnDisconnect = document.getElementById("btnDisconnect");
+    const btnReadOnce = document.getElementById("btnReadOnce");
+    const btnPoll = document.getElementById("btnPoll");
+    const btnReset = document.getElementById("btnReset");
+    const btnScan = document.getElementById("btnScan");
+    const btnStopScan = document.getElementById("btnStopScan");
+    const btnSetAddr = document.getElementById("btnSetAddr");
+    const btnClearLog = document.getElementById("btnClearLog");
+
+    const slaveAddrEl = document.getElementById("slaveAddr");
+    const scanStartEl = document.getElementById("scanStart");
+    const scanEndEl = document.getElementById("scanEnd");
+    const newAddrEl = document.getElementById("newAddr");
+    const intervalEl = document.getElementById("intervalInput");
+
+    const scanStatusEl = document.getElementById("scanStatus");
+    const foundDevicesEl = document.getElementById("foundDevices");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const logBox = document.getElementById("logBox");
+
+    let port = null;
+    let reader = null;
+    let isConnected = false;
+    let isBusy = false;
+    let isScanning = false;
+    let pollTimer = null;
+    let rxBuffer = [];
+    let rxWaiter = null;
+
+    if (!("serial" in navigator)) {
+      warningEl.style.display = "block";
+      if (!window.isSecureContext) {
+        warningEl.innerHTML =
+          "⚠️ <b>نکته مهم:</b> برای دسترسی به پورت COM، صفحه باید روی <code>https://</code> (مثل GitHub Pages) یا <code>http://localhost</code> باز شود.";
+      } else {
+        warningEl.innerHTML =
+          "⚠️ مرورگر شما از <b>Web Serial API</b> پشتیبانی نمی‌کند. لطفاً از <b>Microsoft Edge</b> یا <b>Google Chrome</b> در ویندوز استفاده کنید.";
+      }
+      btnConnect.disabled = true;
+    }
+
+    function log(msg) {
+      const now = new Date();
+      const ts = now.toTimeString().split(" ")[0] + "." + String(now.getMilliseconds()).padStart(3, "0");
+      logBox.textContent += `[${ts}] ${msg}\n`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function toHex(bytes) {
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, "0").toUpperCase()).join(" ");
+    }
+
+    function sleep(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    function calcCRC16(bytes) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < bytes.length; i++) {
+        crc ^= bytes[i];
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x0001) ? ((crc >>> 1) ^ 0xA001) : (crc >>> 1);
+        }
+      }
+      return [crc & 0xFF, (crc >> 8) & 0xFF];
+    }
+
+    function getSlaveAddress() {
+      const addr = parseInt(slaveAddrEl.value, 10);
+      if (isNaN(addr) || addr < 1 || addr > 248) {
+        alert("آدرس Slave باید عددی بین 1 تا 248 باشد.");
+        return null;
+      }
+      return addr;
+    }
+
+    async function readLoop() {
+      try {
+        while (isConnected && port && port.readable) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value && value.length > 0) {
+            for (const byte of value) rxBuffer.push(byte);
+            if (rxWaiter) rxWaiter();
+          }
+        }
+      } catch (err) {
+        if (isConnected) log("Serial Read Error: " + err.message);
+      }
+    }
+
+    function waitForBytes(expectedLen, timeoutMs = 600) {
+      return new Promise((resolve) => {
+        if (rxBuffer.length >= expectedLen) {
+          return resolve(new Uint8Array(rxBuffer.slice(0, expectedLen)));
+        }
+        const timer = setTimeout(() => {
+          rxWaiter = null;
+          resolve(new Uint8Array(rxBuffer));
+        }, timeoutMs);
+
+        rxWaiter = () => {
+          if (rxBuffer.length >= expectedLen) {
+            clearTimeout(timer);
+            rxWaiter = null;
+            resolve(new Uint8Array(rxBuffer.slice(0, expectedLen)));
+          }
+        };
+      });
+    }
+
+    async function sendAndReceive(frame, expectedLen, timeoutMs = 600, silentTimeout = false) {
+      if (!isConnected || !port || isBusy) return null;
+      isBusy = true;
+      try {
+        rxBuffer = [];
+        const writer = port.writable.getWriter();
+        await writer.write(frame);
+        writer.releaseLock();
+        if (!silentTimeout) log("TX: " + toHex(frame));
+
+        const resp = await waitForBytes(expectedLen, timeoutMs);
+        if (resp.length === 0) {
+          if (!silentTimeout) log("RX: Timeout (پاسخی دریافت نشد)");
+        } else {
+          if (!silentTimeout) log("RX: " + toHex(resp));
+        }
+        return resp;
+      } catch (err) {
+        log("TX/RX Error: " + err.message);
+        return null;
+      } finally {
+        isBusy = false;
+      }
+    }
+
+    function parseAndDisplayMeasurement(resp) {
+      const view = new DataView(resp.buffer, resp.byteOffset, resp.byteLength);
+      const regs = [];
+      for (let i = 0; i < 10; i++) {
+        regs.push(view.getUint16(3 + i * 2, false));
+      }
+
+      const voltage = regs[0] * 0.1;
+      const current = (((regs[2] << 16) | regs[1]) >>> 0) * 0.001;
+      const power = (((regs[4] << 16) | regs[3]) >>> 0) * 0.1;
+      const energyWh = ((regs[6] << 16) | regs[5]) >>> 0;
+      const energyKwh = energyWh / 1000.0;
+      const freq = regs[7] * 0.1;
+      const pf = regs[8] * 0.01;
+      const isAlarm = regs[9] === 0xFFFF;
+
+      document.getElementById("valVoltage").textContent = `${voltage.toFixed(1)} V`;
+      document.getElementById("valCurrent").textContent = `${current.toFixed(3)} A`;
+      document.getElementById("valPower").textContent = `${power.toFixed(1)} W`;
+      document.getElementById("valEnergy").textContent = `${energyKwh.toFixed(3)} kWh (${energyWh} Wh)`;
+      document.getElementById("valFreq").textContent = `${freq.toFixed(1)} Hz`;
+      document.getElementById("valPF").textContent = `${pf.toFixed(2)}`;
+      document.getElementById("valAlarm").textContent = isAlarm ? "ALARM!" : "Normal";
+      document.getElementById("alarmCard").classList.toggle("alarm-on", isAlarm);
+    }
+
+    function validateReadResponse(resp) {
+      if (!resp || resp.length !== 25) return false;
+      const crcExpected = calcCRC16(resp.slice(0, 23));
+      if (resp[23] !== crcExpected[0] || resp[24] !== crcExpected[1]) return false;
+      if (resp[1] !== 0x04 || resp[2] !== 20) return false;
+      return true;
+    }
+
+    async function readPZEM() {
+      const addr = getSlaveAddress();
+      if (addr === null) return;
+      const payload = [addr, 0x04, 0x00, 0x00, 0x00, 0x0A];
+      const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
+
+      const resp = await sendAndReceive(frame, 25, 650);
+      if (!resp || resp.length === 0) return;
+
+      if (!validateReadResponse(resp)) {
+        log("Error: پاسخ یا CRC نامعتبر است.");
+        return;
+      }
+      parseAndDisplayMeasurement(resp);
+    }
+
+    async function scanDevices() {
+      stopPolling();
+      const start = parseInt(scanStartEl.value, 10);
+      const end = parseInt(scanEndEl.value, 10);
+      if (isNaN(start) || isNaN(end) || start < 1 || end > 247 || start > end) {
+        alert("بازه جستجو نامعتبر است (باید بین 1 تا 247 باشد).");
+        return;
+      }
+
+      isScanning = true;
+      updateActionButtons();
+      foundDevicesEl.innerHTML = "";
+      let foundCount = 0;
+      log(`شروع جستجو از آدرس ${start} تا ${end}...`);
+
+      for (let addr = start; addr <= end; addr++) {
+        if (!isScanning || !isConnected) break;
+        scanStatusEl.textContent = `در حال بررسی آدرس ${addr} از ${end}...`;
+
+        const payload = [addr, 0x04, 0x00, 0x00, 0x00, 0x0A];
+        const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
+
+        const resp = await sendAndReceive(frame, 25, 160, true);
+        if (validateReadResponse(resp)) {
+          foundCount++;
+          const view = new DataView(resp.buffer, resp.byteOffset, resp.byteLength);
+          const voltage = (view.getUint16(3, false) * 0.1).toFixed(1);
+          log(`✅ دستگاه پیدا شد -> آدرس: ${addr} | ولتاژ: ${voltage}V`);
+
+          const chip = document.createElement("button");
+          chip.className = "device-chip";
+          chip.textContent = `آدرس ${addr} (${voltage}V)`;
+          chip.title = "برای انتخاب این آدرس کلیک کنید";
+          chip.onclick = () => {
+            slaveAddrEl.value = addr;
+            readPZEM();
+          };
+          foundDevicesEl.appendChild(chip);
+        }
+        await sleep(25);
+      }
+
+      if (foundCount === 0) {
+        foundDevicesEl.innerHTML = `<span class="hint">هیچ دستگاهی در این بازه پاسخ نداد.</span>`;
+      }
+      scanStatusEl.textContent = isScanning ? `جستجو پایان یافت (${foundCount} دستگاه پیدا شد).` : "جستجو متوقف شد.";
+      log(`پایان جستجو. تعداد دستگاه‌های یافت‌شده: ${foundCount}`);
+
+      isScanning = false;
+      updateActionButtons();
+    }
+
+    async function setAddress() {
+      stopPolling();
+      const currentAddr = getSlaveAddress();
+      if (currentAddr === null) return;
+
+      const newAddr = parseInt(newAddrEl.value, 10);
+      if (isNaN(newAddr) || newAddr < 1 || newAddr > 247) {
+        alert("آدرس جدید باید بین 1 تا 247 باشد.");
+        return;
+      }
+      if (!confirm(`آیا آدرس دستگاه متصل از ${currentAddr} به ${newAddr} تغییر کند؟`)) return;
+
+      const payload = [currentAddr, 0x06, 0x00, 0x02, 0x00, newAddr];
+      const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
+
+      const resp = await sendAndReceive(frame, 8, 700);
+      if (!resp || resp.length !== 8) {
+        log("❌ تغییر آدرس ناموفق بود (پاسخ ناقص یا عدم دریافت پاسخ).");
+        return;
+      }
+
+      const crcExpected = calcCRC16(resp.slice(0, 6));
+      if (resp[6] !== crcExpected[0] || resp[7] !== crcExpected[1]) {
+        log("❌ خطای CRC در پاسخ تغییر آدرس.");
+        return;
+      }
+
+      if (resp[1] === 0x06 && resp[2] === 0x00 && resp[3] === 0x02 && resp[5] === newAddr) {
+        slaveAddrEl.value = newAddr;
+        log(`✅ آدرس ماژول با موفقیت به ${newAddr} تغییر یافت.`);
+        await sleep(100);
+        await readPZEM();
+      } else {
+        log("❌ ماژول تغییر آدرس را تایید نکرد.");
+      }
+    }
+
+    async function resetEnergy() {
+      const addr = getSlaveAddress();
+      if (addr === null) return;
+      if (!confirm(`آیا شمارنده انرژی ماژول با آدرس ${addr} صفر شود؟`)) return;
+
+      const payload = [addr, 0x42];
+      const frame = new Uint8Array([...payload, ...calcCRC16(payload)]);
+
+      const resp = await sendAndReceive(frame, 4, 650);
+      if (!resp || resp.length !== 4) {
+        log("Reset Energy Failed.");
+        return;
+      }
+      const crcExpected = calcCRC16(resp.slice(0, 2));
+      if (resp[1] === 0x42 && resp[2] === crcExpected[0] && resp[3] === crcExpected[1]) {
+        log("✅ انرژی با موفقیت صفر شد.");
+        await readPZEM();
+      } else {
+        log("❌ پاسخ ریست نامعتبر بود.");
+      }
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      btnPoll.textContent = "شروع خواندن خودکار";
+      updateActionButtons();
+    }
+
+    function updateActionButtons() {
+      const canAct = isConnected && !isScanning;
+      btnConnect.disabled = isConnected;
+      btnDisconnect.disabled = !isConnected;
+      btnReadOnce.disabled = !canAct || !!pollTimer;
+      btnPoll.disabled = !canAct;
+      btnReset.disabled = !canAct;
+      btnSetAddr.disabled = !canAct;
+      btnScan.disabled = !canAct;
+      btnStopScan.disabled = !(isConnected && isScanning);
+    }
+
+    btnConnect.addEventListener("click", async () => {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: "none" });
+        isConnected = true;
+        statusDot.classList.add("connected");
+        statusText.textContent = "متصل (9600 8N1)";
+        updateActionButtons();
+        reader = port.readable.getReader();
+        readLoop();
+        log("Connected to COM port (9600 8N1).");
+      } catch (err) {
+        log("Connect Error: " + err.message);
+      }
+    });
+
+    btnDisconnect.addEventListener("click", async () => {
+      isScanning = false;
+      stopPolling();
+      isConnected = false;
+      try {
+        if (reader) {
+          await reader.cancel();
+          reader.releaseLock();
+          reader = null;
+        }
+        if (port) {
+          await port.close();
+          port = null;
+        }
+      } catch (err) {
+        log("Disconnect Error: " + err.message);
+      }
+      statusDot.classList.remove("connected");
+      statusText.textContent = "قطع";
+      updateActionButtons();
+      log("Disconnected.");
+    });
+
+    btnReadOnce.addEventListener("click", readPZEM);
+    btnReset.addEventListener("click", resetEnergy);
+    btnScan.addEventListener("click", scanDevices);
+    btnStopScan.addEventListener("click", () => { isScanning = false; });
+    btnSetAddr.addEventListener("click", setAddress);
+    btnClearLog.addEventListener("click", () => { logBox.textContent = ""; });
+
+    btnPoll.addEventListener("click", () => {
+      if (pollTimer) {
+        stopPolling();
+      } else {
+        const ms = Math.max(300, parseInt(intervalEl.value, 10) || 1000);
+        btnPoll.textContent = "توقف خواندن خودکار";
+        readPZEM();
+        pollTimer = setInterval(readPZEM, ms);
+        updateActionButtons();
+      }
+    });
+
+    // ثبت Service Worker برای اجرای آفلاین
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "تستر PZEM-004T v3",
+  "short_name": "PZEM Tester",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
